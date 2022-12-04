@@ -5,7 +5,6 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 
@@ -20,7 +19,8 @@ public final class EtsuniBans extends JavaPlugin {
         connect();
         this.getCommand("ban").setExecutor(new BanEvent(this));
         this.getServer().getPluginManager().registerEvents(new Events(this), this);
-        this.getCommand("history").setExecutor(new History(this));
+        this.getCommand("history").setExecutor(new HistoryGUI(this));
+        this.getCommand("unban").setExecutor(new Unban(this));
     }
 
     @Override
