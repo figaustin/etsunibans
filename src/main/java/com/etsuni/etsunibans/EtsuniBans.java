@@ -20,6 +20,7 @@ public final class EtsuniBans extends JavaPlugin {
         connect();
         this.getCommand("ban").setExecutor(new BanEvent(this));
         this.getServer().getPluginManager().registerEvents(new Events(this), this);
+        this.getCommand("history").setExecutor(new History(this));
     }
 
     @Override
