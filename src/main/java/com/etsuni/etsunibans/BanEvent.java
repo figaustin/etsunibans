@@ -8,11 +8,9 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 
 public class BanEvent implements CommandExecutor {
@@ -47,7 +45,7 @@ public class BanEvent implements CommandExecutor {
                             return false;
                         }
                         permaBanPlayer(((Player) sender).getUniqueId().toString(), p.getUniqueId().toString(), reason);
-                        p.kickPlayer(reason);
+                        p.kickPlayer("You have been banned for: " + reason);
                     }
                 }
 
