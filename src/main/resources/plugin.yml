@@ -1,0 +1,8 @@
+name: EtsuniBans
+version: '${project.version}'
+main: com.etsuni.etsunibans.EtsuniBans
+api-version: 1.19
+commands:
+  ban:
+    description: Ban command
+    aliases: [tempban]
