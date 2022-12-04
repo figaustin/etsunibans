@@ -8,3 +8,5 @@ commands:
     aliases: [tempban]
   history:
     description: Open player ban history
+  unban:
+    description: Unban player command
