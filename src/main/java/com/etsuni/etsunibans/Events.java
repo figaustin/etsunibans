@@ -3,10 +3,13 @@ package com.etsuni.etsunibans;
 import com.mongodb.client.FindIterable;
 import org.bson.Document;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.inventory.Inventory;
 
 import java.text.DateFormat;
 import java.time.Instant;
@@ -32,8 +35,8 @@ public class Events implements Listener {
     public void onJoin(PlayerLoginEvent event) {
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
-        if(isBanned(player.getUniqueId().toString())){
-            event.disallow(PlayerLoginEvent.Result.KICK_BANNED, "reason");
+        if(isBanned(uuid.toString())){
+            event.disallow(PlayerLoginEvent.Result.KICK_BANNED, getBanReason(uuid.toString()));
         }
 
     }
@@ -51,14 +54,45 @@ public class Events implements Listener {
             Bukkit.broadcastMessage(doc.getList("bans", Document.class).get(0).getString("reason"));
             List<Document> list = doc.getList("bans", Document.class);
             Date date = list.get(list.size() - 1).getDate("expiration");
-            LocalDateTime convert = date.toInstant().atZone(ZoneOffset.systemDefault()).toLocalDateTime();
-
+            System.out.println("Date string" + date.toString());
+            LocalDateTime convert = date.toInstant().atOffset(ZoneOffset.UTC).toLocalDateTime();
+            System.out.println("Convert string" + convert.toString());
             if(now.isAfter(convert)) {
                 return false;
+            } else {
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
+    private String getBanReason(String uuid) {
+        Document find = new Document("uuid", uuid.toString());
+        String str = "";
+        FindIterable<Document> finds = plugin.getCollection().find(find);
+        if(finds == null) {
+            return null;
+        }
+
+        for(Document doc : finds) {
+            Bukkit.broadcastMessage(doc.getList("bans", Document.class).get(0).getString("reason"));
+            List<Document> list = doc.getList("bans", Document.class);
+            str = list.get(list.size() - 1).getString("reason");
+        }
+
+        return str;
+    }
+
+    @EventHandler
+    public void onClick(InventoryClickEvent event) {
+        Player player = (Player) event.getWhoClicked();
+        Inventory inventory = event.getInventory();
+
+        if(!inventory.getItem(0).getType().equals(Material.PLAYER_HEAD) && !inventory.getItem(0).hasItemMeta()) {
+            return;
+        }
+
+        event.setCancelled(true);
+    }
 
 }
