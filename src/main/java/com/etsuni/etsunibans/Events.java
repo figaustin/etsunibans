@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.inventory.Inventory;
 
@@ -30,7 +31,7 @@ public class Events implements Listener {
         UUID uuid = player.getUniqueId();
         Unban unban = new Unban(plugin);
         if(!unban.allowPlayerToJoin(uuid.toString())){
-            event.disallow(PlayerLoginEvent.Result.KICK_BANNED, getBanReason(uuid.toString()));
+            event.disallow(PlayerLoginEvent.Result.KICK_BANNED, "You are banned for: " + getBanReason(uuid.toString()));
         }
 
     }
@@ -39,12 +40,11 @@ public class Events implements Listener {
         Document find = new Document("uuid", uuid.toString());
         String str = "";
         FindIterable<Document> finds = plugin.getCollection().find(find);
-        if(finds == null) {
+        if(finds.first() == null) {
             return null;
         }
 
         for(Document doc : finds) {
-            Bukkit.broadcastMessage(doc.getList("bans", Document.class).get(0).getString("reason"));
             List<Document> list = doc.getList("bans", Document.class);
             str = list.get(list.size() - 1).getString("reason");
         }
@@ -54,13 +54,16 @@ public class Events implements Listener {
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
-        Player player = (Player) event.getWhoClicked();
         Inventory inventory = event.getInventory();
-
+        if(!inventory.getType().equals(InventoryType.CHEST)){
+            return;
+        }
+        if(inventory.getItem(0) == null) {
+            return;
+        }
         if(!inventory.getItem(0).getType().equals(Material.PLAYER_HEAD) && !inventory.getItem(0).hasItemMeta()) {
             return;
         }
-
         event.setCancelled(true);
     }
 

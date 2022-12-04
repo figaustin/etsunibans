@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 public class Unban implements CommandExecutor {
@@ -36,38 +37,41 @@ public class Unban implements CommandExecutor {
                     OfflinePlayer targetPlayer = Bukkit.getOfflinePlayer(args[0]);
                     UUID uuid = targetPlayer.getUniqueId();
 
-
-                    if(forceUnban(uuid.toString()).getModifiedCount() > 0){
-                        sender.sendMessage(ChatColor.GREEN + "You have unbanned " + targetPlayer.getName());
-                    } else {
+                    if(forceUnban(uuid.toString()) == null) {
                         sender.sendMessage(ChatColor.RED + "Could not find target player or player is already unbanned!");
                     }
-
+                    else if(forceUnban(uuid.toString()).wasAcknowledged()){
+                        sender.sendMessage(ChatColor.GREEN + "You have unbanned " + targetPlayer.getName());
+                    }
                 } else {
                     sender.sendMessage(ChatColor.DARK_RED + "Please specify a player's name");
                 }
-
             }
         }
         return false;
     }
 
+    //Override the expiration of a ban and set "expired" to true
     public UpdateResult forceUnban(String uuid) {
         Document find = new Document("uuid", uuid.toString());
         FindIterable<Document> finds = plugin.getCollection().find(find);
+
         if(finds.first() == null) {
             return null;
         }
+
         Bson filter = Filters.and(Filters.eq("uuid", uuid), Filters.eq("bans.expired", false));
         Bson update = Updates.set("bans.$.expired", true);
         return plugin.getCollection().updateOne(filter, update);
     }
 
+    //Checks to see if player should continue being banned or not: Looks to see if expiration date is in the past, if so
+    //Set "expired" to true and allow the player to join
     public Boolean allowPlayerToJoin(String uuid) {
         LocalDateTime now = LocalDateTime.now();
-
         Document find = new Document("uuid", uuid.toString());
         FindIterable<Document> finds = plugin.getCollection().find(find);
+
         if(finds.first() == null) {
             return true;
         }
@@ -88,7 +92,7 @@ public class Unban implements CommandExecutor {
                     return list.get(index).getBoolean("expired");
                 }
             }
-            LocalDateTime convert = date.toInstant().atOffset(ZoneOffset.UTC).toLocalDateTime();
+            LocalDateTime convert = Objects.requireNonNull(date).toInstant().atOffset(ZoneOffset.UTC).toLocalDateTime();
             if(now.isAfter(convert)) {
                 Bson filter = Filters.and(Filters.eq("uuid", uuid), Filters.eq("bans.expired", false));
                 Bson update = Updates.set("bans.$.expired", true);
