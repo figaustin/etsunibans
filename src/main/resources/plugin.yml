@@ -6,3 +6,5 @@ commands:
   ban:
     description: Ban command
     aliases: [tempban]
+  history:
+    description: Open player ban history
